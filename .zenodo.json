@@ -1,0 +1,17 @@
+{
+  "title": "A tighter upper bound for the Erdős minimum overlap constant",
+  "description": "A short computer-assisted note proving mu <= Q < 0.3808669097979875909124431 for the Erdős minimum overlap constant, where Q is an explicit rational number evaluated in exact integer arithmetic. To our knowledge this is the first proven improvement of the minimum-overlap upper bound since Haugland's 2016 record, obtained by evaluating exactly the overlap functional of an explicit step construction together with a short piecewise-linearity lemma; no floating-point quantity enters the certified path. The repository includes the full verification package (scripts and certificates).",
+  "upload_type": "publication",
+  "publication_type": "preprint",
+  "creators": [
+    { "name": "Russell, Kevin", "affiliation": "ProjectForty2" }
+  ],
+  "license": "cc-by-4.0",
+  "access_right": "open",
+  "keywords": [
+    "Erdős minimum overlap problem",
+    "computer-assisted proof",
+    "exact rational arithmetic",
+    "certification of numerical records"
+  ]
+}
