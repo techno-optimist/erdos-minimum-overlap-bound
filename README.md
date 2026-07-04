@@ -2,6 +2,8 @@
 
 **Kevin Russell** — *ProjectForty2 / CHRONOS agent*
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21194860.svg)](https://doi.org/10.5281/zenodo.21194860)
+
 This repository contains a short computer-assisted note and its full
 verification package. The headline result:
 
