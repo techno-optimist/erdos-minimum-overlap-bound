@@ -1,0 +1,37 @@
+{
+  "source_npz": "/tmp/erdos_cert_N150000_R40_T40000.npz",
+  "N": 150000,
+  "R": 40,
+  "T": 40000,
+  "h1": 0.0,
+  "h2": 0.06,
+  "p1": 0.33,
+  "p2": 0.35,
+  "q1": -0.02,
+  "q2": 0.02,
+  "Omega_star_primal": 0.3807934857456547,
+  "L_at_primal_point": 0.3803206636962587,
+  "box_underestimator_correction": -0.0008700199783603747,
+  "correction_breakdown": {
+    "Omega": -7.107099376695311e-09,
+    "w": -6.256038760222643e-07,
+    "v": -6.254316554311573e-07,
+    "c": -0.0008687609701845615,
+    "d": -8.628407001617491e-10,
+    "eps": -1.2772645097790212e-12,
+    "delta": -1.4270184128882902e-12
+  },
+  "rigorous_lower_bound_on_mu": 0.37945064371789833,
+  "dual_repair_clip_mass": 0.0,
+  "dual_infeasibility_residuals": {
+    "c_Omega": -1.1477752919401618e-08,
+    "min_c_w": -1.4872199903960453e-10,
+    "min_c_v": -1.489781571659143e-10,
+    "max_abs_grad_c": 0.04710514409446058,
+    "max_abs_grad_d": 3.6672063659305215e-11,
+    "max_abs_grad_eps": 4.429614150756991e-06,
+    "max_abs_grad_delta": 4.945467896392473e-11
+  },
+  "method": "weak-duality tangent-underestimator over the simple-bound box (White Prop.9 lower bound; dual repair = clip lambda>=0).",
+  "theorem_statement": "The extracted multipliers (all inequality lambda >= 0 after a clip of total mass 0.00e+00) certify, via the tangent underestimator of the Lagrangian over the program's simple-bound box, that the Section-5 program optimum p* >= 0.3794506. By White (arXiv:2201.05704) Prop. 9, p* <= mu, hence mu >= 0.3794506. [Method: White. Scaling + certificate extraction + repair: ours. Not a determination of mu.]"
+}

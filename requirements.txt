@@ -1,0 +1,11 @@
+# The theorem-grade upper-bound path (scripts/erdos_upper_exact.py) needs
+# NOTHING beyond the Python >= 3.12 standard library.
+#
+# The packages below are only for the OPTIONAL lower-bound feasibility study
+# (Section 4 of the note) and for regenerating the figure.
+
+numpy>=1.24        # I/O, float cross-checks, figure
+matplotlib>=3.7    # make_figure.py only
+mpmath>=1.3        # interval-arithmetic verification harness
+cvxpy>=1.4         # scaled solver
+clarabel>=0.6      # conic solver backend used by cvxpy
