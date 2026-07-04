@@ -80,7 +80,9 @@ Honest scoping is the point of the note, so it is worth repeating here:
 
 ### Upper bound — the theorem-grade path (Python standard library only)
 
-Requires **Python ≥ 3.12** and nothing else. From the repository root:
+Requires **Python ≥ 3.10** (standard library only; on 3.12+ it uses
+`math.sumprod`, otherwise an identical pure-Python fallback). From the
+repository root:
 
 ```bash
 python3 scripts/erdos_upper_exact.py
@@ -89,10 +91,15 @@ python3 scripts/erdos_upper_exact.py
 This reads Hyra's vector from `certs/erdos_hyra_current.json`, does everything
 in exact integer arithmetic, and prints the exact fraction `Q`, its 25-digit
 enclosure, the argmax lag `m* = -92`, and the post-rescale `[0,1]` check (zero
-violations). The output must match `certs/lane_u_exact_output.txt` verbatim:
+violations). The certified path (everything before the optional `numpy`
+cross-check) must match `certs/lane_u_exact_output.txt` byte-for-byte. Because
+the trailing `numpy` block is float-valued and its last-digit rounding varies
+by numpy/BLAS build, strip it from both sides before comparing so the check is
+deterministic regardless of whether `numpy` is installed:
 
 ```bash
-python3 scripts/erdos_upper_exact.py | diff - certs/lane_u_exact_output.txt && echo OK
+python3 scripts/erdos_upper_exact.py | sed '/numpy/,$d' \
+    | diff - <(sed '/numpy/,$d' certs/lane_u_exact_output.txt) && echo OK
 ```
 
 Runs in well under a second. (A `numpy` cross-check at the end is optional and
@@ -120,9 +127,14 @@ The two verdicts referenced in the note are shipped precomputed:
 `certs/erdos_verdict_repaired_N20000.json` (96/96 inequality constraints
 certified) and `certs/erdos_verdict_repaired_N80000.json` (176/176). **These
 are primal feasibility certificates: they verify the transcription of White's
-program at scale, but by weak duality they do *not* bound μ.** The dual-repair
-summary (`certs/erdos_repaired_cert_N150000.json`) is float-evaluated and its
-interval verification is listed as pending in the note.
+program at scale, but by weak duality they do *not* bound μ.** Expected output
+on success: `erdos_cert_verify.py` exits 0 and its `RIGOR VERDICT` block states
+the certificate is a strictly-feasible primal point that is "NECESSARY but NOT
+SUFFICIENT" for μ ≥ Ω. That verdict is the intended result of a passing run, not
+an error — it restates the weak-duality scoping above. Read the exit code
+(0 = every inequality certified), not the tone of the verdict text. The
+dual-repair summary (`certs/erdos_repaired_cert_N150000.json`) is float-evaluated
+and its interval verification is listed as pending in the note.
 
 ## Build the PDF
 
