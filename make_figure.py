@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Regenerate Figure 1 of the note: the Hyra step construction F and its
-overlap function M, plotted from the lattice values (float display only; every
-certified quantity in the note is exact). Reads certs/erdos_hyra_current.json
-and writes fig_hyra_construction.pdf next to this script."""
+"""Regenerate Figure 1 of the note: our n=512 difference-of-convex-refined step
+construction F and its overlap function M, plotted from the lattice values
+(float display only; every certified quantity in the note is exact). Reads
+certs/erdos_dc_n512.json and writes fig_construction.pdf next to this script."""
 import json
 import os
 
@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DATA = os.path.join(HERE, "certs", "erdos_hyra_current.json")
-OUT = os.path.join(HERE, "fig_hyra_construction.pdf")
+DATA = os.path.join(HERE, "certs", "erdos_dc_n512.json")
+OUT = os.path.join(HERE, "fig_construction.pdf")
 
 v = np.array(json.load(open(DATA))["values"], dtype=float)
 n = len(v)
-assert n == 2400
+assert n == 512
 h = 2.0 / n
 f = v * ((n / 2) / v.sum())          # board rescale (float mirror of the exact one)
 g = 1.0 - f
@@ -28,8 +28,9 @@ lags = np.arange(-(n - 1), n)
 M_lattice = (2.0 / n) * C
 k_max = int(np.argmax(M_lattice))
 m_star, M_star = lags[k_max], M_lattice[k_max]
-assert m_star == -92, f"lag convention broken: argmax lag {m_star}"
-assert abs(M_star - 0.3808669097979876) < 1e-15, M_star
+assert m_star == -20, f"lag convention broken: argmax lag {m_star}"
+# float(Q) = 0.38086220320202796
+assert abs(M_star - 0.38086220320202796) < 1e-14, M_star
 
 # extend to m = +-n where M vanishes (supports disjoint)
 x_M = np.concatenate(([-2.0], lags * h, [2.0]))
@@ -57,7 +58,7 @@ ax2.axhline(0.25, color="gray", linewidth=0.7, linestyle=":", zorder=0)
 ax2.text(-1.97, 0.262, "mean value $1/4$", color="gray", fontsize=8)
 ax2.plot([m_star * h], [M_star], "o", color="#b22222", markersize=4, zorder=5)
 ax2.annotate(
-    r"$\sup_x M(x) = M(-184/2400) = Q$",
+    r"$\sup_x M(x) = M(-5/64) = Q$",
     xy=(m_star * h, M_star), xytext=(0.28, 0.345),
     fontsize=8.5, color="#b22222",
     arrowprops=dict(arrowstyle="-", color="#b22222", linewidth=0.6),

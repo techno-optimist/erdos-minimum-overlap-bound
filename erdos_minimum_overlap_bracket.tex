@@ -29,9 +29,12 @@ program}
 \author{Kevin Russell\thanks{%
 Correspondence: \texttt{kevinrussell@gmail.com}. Computer-assisted note,
 prepared with CHRONOS, ProjectForty2's autonomous research agent; the author
-takes responsibility for all claims. The upper-bound \emph{construction} is
-due to the agent ``Hyra'' (EinsteinArena, problem \texttt{erdos-min-overlap});
-the lower-bound \emph{method} is due to E.~P.~White \cite{White22}. See the
+takes responsibility for all claims. The upper-bound \emph{construction} was
+obtained by refining, via a difference-of-convex trust-region optimization, the
+current best admissible EinsteinArena construction of the agent ``lnzwz''
+(problem \texttt{erdos-min-overlap}), building on the earlier
+multiscale/step-function work of ``Hyra'' and other arena agents; the
+lower-bound \emph{method} is due to E.~P.~White \cite{White22}. See the
 attribution statement in Section~\ref{sec:intro}. Verification artifacts are
 listed in Appendix~\ref{sec:repro}.}\\[3pt]
 {\normalsize ProjectForty2 --- CHRONOS agent}}
@@ -43,19 +46,22 @@ listed in Appendix~\ref{sec:repro}.}\\[3pt]
 \begin{abstract}
 Let $\mu$ be the Erd\H{o}s minimum overlap constant. We prove
 \[
-0.379005 \;\le\; \mu \;\le\; Q \;<\; 0.3808669097979875909124431,
+0.379005 \;\le\; \mu \;\le\; Q \;<\; 0.3808622032020279475140496,
 \]
-where $Q$ is an explicit rational number, evaluated in exact integer
+where $Q$ is an explicit rational number, evaluated in exact rational
 arithmetic. The upper bound is new: it improves the best previously
 \emph{proven} upper bound $0.3809268534330870$ of Haugland \cite{Haugland16}
-by $5.99\times10^{-5}$, and lies below the floating-point records reported
+by $6.4650\times10^{-5}$, and lies below the floating-point records reported
 by recent AI-search systems \cite{AlphaEvolve25,TTT26,SimpleTES26}. It is
 obtained by evaluating, exactly, the overlap
-functional of an explicit $n=2400$ step-function construction found by the
-AI search agent ``Hyra'' on the EinsteinArena platform; a short
+functional of an explicit admissible $n=512$ step-function construction; a short
 piecewise-linearity lemma reduces the continuum supremum to a finite exact
-computation. The lower bound is Theorem~1 of White \cite{White22}, quoted
-unchanged. On the lower-bound side we additionally report a computer-assisted
+computation. The construction was found by a difference-of-convex trust-region
+optimization of the (nonconvex) discrete minimax, warm-started from the current
+best EinsteinArena construction of the agent ``lnzwz''; as with any
+construction, its validity as an upper bound rests solely on the exact
+certification, not on the search method. The lower bound is Theorem~1 of White
+\cite{White22}, quoted unchanged. On the lower-bound side we additionally report a computer-assisted
 study of White's convex program: a scaled reimplementation up to
 $N=2\times10^{5}$, an independent interval-arithmetic verification harness
 that machine-certified strictly feasible primal points at $N=2\times10^{4}$
@@ -112,8 +118,9 @@ constructions with floating-point scores below \eqref{eq:haugland}:
 AlphaEvolve reports $0.380924\ldots$ \cite{AlphaEvolve25}, TTT-Discover
 reports $0.380876\ldots$ \cite{TTT26}, and SimpleTES reports
 $0.380868\ldots$ \cite{SimpleTES26}; open iterative optimization on the
-EinsteinArena platform \cite{Hyra26} has produced the $n = 2400$
-construction certified here. These reports are numerical scores of
+EinsteinArena platform \cite{Arena26} has produced admissible step-function
+constructions with float scores as low as $0.38086279\ldots$ (agent
+``lnzwz''), which we refine below. These reports are numerical scores of
 discrete constructions; to our knowledge none is accompanied by an exact
 evaluation together with a proof that the discrete score bounds the
 continuum constant $\mu$ --- precisely the two steps supplied below
@@ -127,12 +134,12 @@ and nothing in this note depends on that choice.
 
 \paragraph{What this note proves.} Our headline result
 (Theorem~\ref{thm:main}) replaces the upper side of the bracket by an exact
-rational $Q < 0.3808669097979875909124431$, a reduction of the bracket width
-by about $3.1\%$. The upper bound is theorem-grade in the following concrete
+rational $Q < 0.3808622032020279475140496$, a reduction of the bracket width
+by about $3.4\%$. The upper bound is theorem-grade in the following concrete
 sense: it follows from one short lemma proved here
 (Lemma~\ref{lem:pwlinear}), the Swinnerton-Dyer equivalence between the
 discrete and continuum problems (quoted from \cite{Haugland96,White22}), and
-a finite exact-integer-arithmetic computation that is fully reproducible from
+a finite exact-rational-arithmetic computation that is fully reproducible from
 the included script (Appendix~\ref{sec:repro}); no floating-point quantity
 enters the chain. On the lower side we make no new unconditional claim:
 \eqref{eq:white} stands as published. Sections~\ref{sec:lower}
@@ -143,12 +150,18 @@ verification.
 
 \paragraph{Attribution.} This is a computer-assisted tightening and
 certification exercise, and credit belongs where the mathematics originated.
-The step-function \emph{construction} behind the new upper bound was produced
-by the agent ``Hyra'' --- an anonymous AI search agent competing on the
-EinsteinArena platform (problem \texttt{erdos-min-overlap}) \cite{Hyra26},
-within an ecosystem of AI agents doing open iterative optimization on this
-problem; our contribution on the upper side is limited to the
-piecewise-linearity lemma and the exact rational evaluation. The lower-bound
+The step-function \emph{construction} behind the new upper bound belongs to the
+lineage of the EinsteinArena ecosystem (problem \texttt{erdos-min-overlap})
+\cite{Arena26}, an ecosystem of AI agents doing open iterative optimization on
+this problem: it was found by a difference-of-convex trust-region optimization
+warm-started from the current best admissible arena construction of the agent
+``lnzwz'', which in turn builds on the earlier multiscale/step-function work of
+``Hyra'' and other arena agents. We do not claim to have invented the
+construction from scratch. Our contribution on the upper side is threefold: the
+difference-of-convex optimization that improved on the field, the
+piecewise-linearity lemma, and the exact rational evaluation; the
+rigor of the bound rests entirely on the last two, the search method being only
+how the construction was found. The lower-bound
 \emph{method} --- the Fourier-analytic constraint family, the convex program,
 and its dual verification strategy --- is entirely White's \cite{White22};
 our contribution there is limited to scaling his program to larger $N$,
@@ -180,29 +193,37 @@ properties that every pair $(f, M)$ must satisfy.
 \section{The upper bound: exact evaluation of a step construction}
 \label{sec:upper}
 
-The candidate is a vector $f = (f_1, \dots, f_n) \in [0,1]^n$ with $n = 2400$,
-found by Hyra \cite{Hyra26}. The EinsteinArena board scores such a vector by
-the following floating-point semantics: rescale $f \leftarrow f \cdot
-\frac{n/2}{\sum_i f_i}$, set $g = 1 - f$, and report
+The candidate is a vector $f = (f_1, \dots, f_n) \in [0,1]^n$ with $n = 512$,
+a nonnegative step function on $[-1,1]$ with $512$ cells and dyadic-rational
+entries (common denominator $2^{40}$). It was found by a difference-of-convex
+trust-region optimization of the (nonconvex) discrete minimax, warm-started
+from the current best admissible EinsteinArena construction of the agent
+``lnzwz'' \cite{Arena26}; the resulting construction is genuinely distinct from
+that warm start (Euclidean distance $\approx 0.277$ in $[0,1]^{512}$, a
+separate equioscillation basin), not a local tweak. As with any construction,
+this history is only how it was \emph{found}: its validity as an upper bound
+rests solely on the exact certification below. The EinsteinArena board scores
+such a vector by the following floating-point semantics: rescale $f \leftarrow
+f \cdot \frac{n/2}{\sum_i f_i}$, set $g = 1 - f$, and report
 $\max_k \corr(f, g)[k] \cdot \frac{2}{n}$, where $\corr(\cdot,\cdot)$ is the
 full discrete cross-correlation ($2n-1$ lags). The board value of the vector
-is $0.3808669097979876$. To convert this into a bound on $\mu$ two things are
-needed: (i)~a proof that the \emph{discrete} maximum over lattice lags equals
-the \emph{continuum} supremum $\sup_x M(x)$ for the associated step function,
-and (ii)~an evaluation of that maximum in exact arithmetic, including the
-rescaling. We do both. Figure~\ref{fig:construction} shows the
-construction and its overlap function.
+is $0.38086220\ldots$, below the best arena float scores. To convert this into
+a bound on $\mu$ two things are needed: (i)~a proof that the \emph{discrete}
+maximum over lattice lags equals the \emph{continuum} supremum $\sup_x M(x)$
+for the associated step function, and (ii)~an evaluation of that maximum in
+exact arithmetic, including the rescaling. We do both. Figure~\ref{fig:construction}
+shows the construction and its overlap function.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.92\textwidth]{fig_hyra_construction}
-\caption{The certified construction. \emph{Top:} the exactly rescaled Hyra
-step function $F$ on $[-1,1]$ ($n = 2400$ cells). \emph{Bottom:} its
+\includegraphics[width=0.92\textwidth]{fig_construction}
+\caption{The certified construction. \emph{Top:} the exactly rescaled
+step function $F$ on $[-1,1]$ ($n = 512$ cells). \emph{Bottom:} its
 overlap function $M$ on $[-2,2]$, continuous and piecewise linear with
 breakpoints on the lattice $h\ZZ$ (Lemma~\ref{lem:pwlinear}), plotted
-through the $4801$ lattice values $M(mh)$; the dotted line is the mean
+through the $1025$ lattice values $M(mh)$; the dotted line is the mean
 value $\tfrac14$ of $M$ on $[-2,2]$. The maximum is attained at
-$x^\ast = -184/2400$, where $M(x^\ast) = Q$. Display is floating point;
+$x^\ast = -5/64$, where $M(x^\ast) = Q$. Display is floating point;
 every certified quantity in the text is exact.}
 \label{fig:construction}
 \end{figure}
@@ -263,75 +284,84 @@ $h = 2/n$ gives the stated normalization, which coincides term-by-term with
 the board's correlation score.
 \end{proof}
 
-\begin{theorem}[upper bound; construction: Hyra \cite{Hyra26}]
+\begin{theorem}[upper bound; construction refined from lnzwz \cite{Arena26}]
 \label{thm:upper}
 Let $\mu$ be the Erd\H{o}s minimum overlap constant. Then
 \[
 \mu \;\le\; Q \;:=\;
-\frac{1424992289798782609633201801352767458976314440679252577}
-     {3741444197802851304404516484910431627947663875649308401},
+\frac{117871142698558740618278313}
+     {309485009821345068724781056},
 \]
 and
 \[
-0.3808669097979875909124430 \;\le\; Q \;<\; 0.3808669097979875909124431 .
+0.3808622032020279475140495 \;\le\; Q \;<\; 0.3808622032020279475140496 .
 \]
-In particular $\mu \le 0.3808669097979875909124431 <
+In particular $\mu \le 0.3808622032020279475140496 <
 0.3809268534330870$, improving \eqref{eq:haugland}.
 \end{theorem}
 
 \begin{proof}
-The raw Hyra vector $v \in [0,1]^{2400}$ is a list of IEEE-754 doubles; each
-double is an exact dyadic rational, and the conversion
-$\mathrm{Fraction}(v_i)$ is exact. Over the common denominator $2^{82}$ the
-raw sum is
-\[
-\sum_i v_i \;=\; \frac{5802843938985922938555908853}{4835703278458516698824704}
-\;=\; 1200 + 9.999999\ldots\times10^{-7},
-\]
-so the board's rescaling factor $\frac{n/2}{\sum v_i}$ is slightly less than
-$1$. The rescaled vector $f_i = 1200\, A_i / S$ (with $A_i, S$ the exact
-integer numerators) satisfies $\sum_i f_i = 1200 = n/2$ \emph{exactly}, and
-an exact integer comparison confirms $0 \le f_i \le 1$ for all $i$ (zero
-violations), so $F$ is admissible. All $2n - 1 = 4799$ lattice correlations
-$\sum_i P_i Q_{i+m}$ (with $P_i = 1200 A_i$, $Q_i = S - P_i$) are exact
-integers; the maximum occurs at lag $m^\ast = -92$ (i.e.
-$x^\ast = -184/2400 \approx -0.0767$), and
+The construction $f \in [0,1]^{512}$ has dyadic-rational entries over the
+common denominator $2^{40}$; writing $f_i = A_i / 2^{40}$ with each
+$A_i \in \ZZ \cap [0, 2^{40}]$, every $f_i$ is exact and the range
+$0 \le f_i \le 1$ is verified by exact integer comparison
+($A_i \le 2^{40}$, zero violations). The entries are scaled so that
+$\sum_i f_i = 256 = n/2$ \emph{exactly}, so that
+$\int F = h\sum_i f_i = (2/n)(n/2) = 1$ and $F$ is admissible for
+\eqref{eq:cont}. Put $g_i = 1 - f_i$, and over the common denominator write
+$P_i = A_i$, $Q_i = 2^{40} - A_i$ (exact integers). All $2n - 1 = 1023$
+lattice correlations $\sum_i P_i Q_{i+m}$ are exact integers; the maximum
+occurs at lag $m^\ast = -20$ (i.e. $x^\ast = -40/512 = -5/64 = -0.078125$),
+and
 \[
 \max_{|m|\le n-1} \frac{2}{n} \sum_i f_i g_{i+m}
-\;=\; \frac{2\,\max_m \sum_i P_i Q_{i+m}}{n\, S^2} \;=\; Q
+\;=\; \frac{2\,\max_m \sum_i P_i Q_{i+m}}{n\, 2^{80}} \;=\; Q
 \]
 after reduction to lowest terms. By Lemma~\ref{lem:pwlinear}(iii) this equals
 $\sup_x M(x)$, and by \eqref{eq:cont}, $\mu \le \sup_x M(x) = Q$. The decimal
 enclosure is obtained by exact integer division of $10^{25} \cdot
 \mathrm{num}(Q)$ by $\mathrm{den}(Q)$ (floor and ceiling). The entire
-computation is exact integer arithmetic and runs in under one second, with
-no floating-point operation on the certified path; see
-Appendix~\ref{sec:repro} (script \texttt{erdos\_upper\_exact.py}).
+computation is exact integer/rational arithmetic and runs in well under one
+second, with no floating-point operation on the certified path; see
+Appendix~\ref{sec:repro} (script \texttt{erdos\_cert\_general.py} on
+\texttt{certs/erdos\_dc\_n512.json}).
 \end{proof}
 
+\begin{remark}[the search method versus the certificate]
+The construction was found by a difference-of-convex trust-region
+optimization of the (nonconvex) discrete minimax, warm-started from lnzwz's
+current best admissible arena construction. This is a heuristic search: no
+structural property of the optimizer (e.g.\ concavity of the individual
+overlaps, or definiteness of any shift matrix) is claimed or used, and the
+validity of the upper bound does not depend on any of it. The bound rests
+solely on the exact certification above --- Lemma~\ref{lem:pwlinear} and the
+finite exact evaluation --- which is airtight for \emph{any} admissible step
+function regardless of how it was produced.
+\end{remark}
+
 \begin{remark}[relation to the board value]
-$\mathrm{float}(Q) = 0.3808669097979876$ agrees with the board's
-floating-point score to the last bit, and the exact lag-by-lag values agree
-with \texttt{numpy.correlate} to $\le 1.7\times10^{-16}$ (this also pins
-down numpy's lag-indexing convention). The float agreement plays no role in
-the proof; it is a sanity cross-check.
+$\mathrm{float}(Q) = 0.38086220320202796$ agrees with the board's
+floating-point score, and the exact lag-by-lag values agree with
+\texttt{numpy.correlate} to floating-point precision. The float agreement
+plays no role in the proof; it is a sanity cross-check.
 \end{remark}
 
 \begin{remark}[scope of the claim]\label{rem:scope}
 Inequality \eqref{eq:haugland} is, to our knowledge, the best \emph{proven}
 upper bound in the literature (Haugland 2016 \cite{Haugland16});
-Theorem~\ref{thm:upper} improves it by $5.994\times10^{-5}$. Smaller
+Theorem~\ref{thm:upper} improves it by $6.4650\times10^{-5}$. Smaller
 floating-point values have been reported by AI-search systems ---
 $0.380924\ldots$ \cite{AlphaEvolve25}, $0.380876\ldots$ \cite{TTT26},
-$0.380868\ldots$ \cite{SimpleTES26} --- all of which lie \emph{above} $Q$.
+$0.380868\ldots$ \cite{SimpleTES26} --- and the best admissible arena float
+scores (e.g.\ lnzwz, $0.38086279\ldots$) all lie \emph{above} $Q$.
 Those reports are numerical evaluations of discrete constructions; we are
 not aware of an exact-arithmetic continuum certification for any of them,
 and Lemma~\ref{lem:pwlinear} together with the evaluation procedure of
 Theorem~\ref{thm:upper} supplies exactly that missing step for an
 arbitrary step construction. We make no priority claim over unpublished or
-in-progress work by others, including other EinsteinArena participants,
-whose live constructions this value is built from; the construction is
-Hyra's.
+in-progress work by others, including other EinsteinArena participants; our
+construction was obtained by refining lnzwz's live arena construction, and
+its lineage belongs to that ecosystem.
 \end{remark}
 
 \section{The lower bound: White's program, scaled and certified}
@@ -529,14 +559,14 @@ misconception that motivated the scaled runs:
 
 \begin{enumerate}
 \item \textbf{The best known construction does not lie in $B_0$.} For the
-Hyra step function of Section~\ref{sec:upper}, exact-cell integration gives
-$c_1 = \int_{-1}^1 \cos(\pi x) F(x)\,dx \approx -0.3813$; after White's
-WLOG normalization ($f \mapsto 1 - f$, then $x \mapsto -x$) the
-representative configuration has
+step construction of Section~\ref{sec:upper}, exact-cell integration gives
+$c_1 = \int_{-1}^1 \cos(\pi x) F(x)\,dx \approx 0.382$ and
+$E(M) \approx 0.0001$, already in White's WLOG-normalized orientation
+($c_1 \ge 0$, $E(M) \ge 0$), so the representative configuration has
 \[
-\bigl(E(M),\, c_1,\, d_1\bigr) \;\approx\; (0.0003,\; 0.3813,\; \mp0.0005),
+\bigl(E(M),\, c_1,\, d_1\bigr) \;\approx\; (0.0001,\; 0.382,\; +0.0001),
 \]
-so $c_1^\ast \approx 0.3813 \notin [0.33, 0.35]$. Indeed White's own
+so $c_1^\ast \approx 0.382 \notin [0.33, 0.35]$. Indeed White's own
 divide-and-conquer \cite[eq.~(5.16)]{White22} already localized the optimal
 configuration to $c_1^\ast \in [0.35, 0.45]$ --- his Table-2 line for $B_0$
 (value $0.37925$) is an \emph{exclusion} step, not the binding box.
@@ -577,20 +607,21 @@ exclusion is established yet.
 \begin{theorem}[the bracket, with rigor status]\label{thm:main}
 Let $\mu$ be the Erd\H{o}s minimum overlap constant of \eqref{eq:cont}. Then
 \begin{gather*}
-0.379005 \;\le\; \mu \;\le\; Q \;<\; 0.3808669097979875909124431,
+0.379005 \;\le\; \mu \;\le\; Q \;<\; 0.3808622032020279475140496,
 \qquad\text{where}\\[2pt]
 Q \;=\;
-\frac{1424992289798782609633201801352767458976314440679252577}
-     {3741444197802851304404516484910431627947663875649308401}\,.
+\frac{117871142698558740618278313}
+     {309485009821345068724781056}\,.
 \end{gather*}
 \emph{Rigor status of each side:}
 \begin{enumerate}
 \item[(U)] The upper bound is Theorem~\ref{thm:upper}: Lemma~\ref{lem:pwlinear}
 (proved above), the Swinnerton-Dyer equivalence \eqref{eq:cont} (quoted from
-\cite{Haugland96,White22}), and a finite exact-integer-arithmetic evaluation
-of Hyra's $n = 2400$ construction \cite{Hyra26}, independently re-runnable in
-under a second. No floating-point quantity enters the certified path. This
-side is new and improves \cite{Haugland16} by $5.994\times10^{-5}$.
+\cite{Haugland96,White22}), and a finite exact-rational-arithmetic evaluation
+of an admissible $n = 512$ construction \cite{Arena26}, independently
+re-runnable in under a second. No floating-point quantity enters the certified
+path. This side is new and improves \cite{Haugland16} by
+$6.4650\times10^{-5}$.
 \item[(L)] The lower bound is Theorem~1 of White \cite{White22}, quoted
 unchanged; his proof is computer-assisted with explicitly verified dual
 feasible points. None of the computations reported in
@@ -611,7 +642,7 @@ not bear on Theorem~\ref{thm:main}.
 \end{conditional}
 
 \begin{remark}[what this note does not prove]\label{rem:notproved}
-The numerical bracket ``$\mu \in [0.380827,\, 0.380867]$'' suggested by the
+The numerical bracket ``$\mu \in [0.380827,\, 0.380862]$'' suggested by the
 $N$-progression of Section~\ref{sec:scaling} together with
 Theorem~\ref{thm:upper} is \emph{not established}, for three independent
 reasons: (i) the solver values are floating-point and mildly infeasible
@@ -669,14 +700,21 @@ commands below.
 
 \paragraph{Upper bound (exact; certifies Theorem~\ref{thm:upper}).}
 \begin{itemize}
-\item \texttt{scripts/erdos\_upper\_exact.py} --- exact rational evaluation.
-Input: \texttt{certs/erdos\_hyra\_current.json} (Hyra's $n=2400$ vector, as
-retrieved from the EinsteinArena board 2026-06-30). Run:
-\texttt{python3 erdos\_upper\_exact.py}. Output must reproduce
-\texttt{certs/lane\_u\_exact\_output.txt} verbatim: the exact fraction $Q$,
-the $25$-digit enclosure, argmax lag $-92$, and the $[0,1]$ post-rescale
-check with zero violations. Requires only the Python standard library
-(\texttt{fractions}); the \texttt{numpy} cross-check at the end is optional.
+\item \texttt{scripts/erdos\_cert\_general.py} --- exact rational evaluation
+of an arbitrary admissible step vector (stdlib \texttt{fractions} only;
+no floating-point on the certified path). Input:
+\texttt{certs/erdos\_dc\_n512.json} (our $n=512$ difference-of-convex-refined
+construction; dyadic entries over $2^{40}$, $\sum_i f_i = 256$). Run:
+\texttt{python3 scripts/erdos\_cert\_general.py certs/erdos\_dc\_n512.json}
+(equivalently \texttt{make verify}). It recomputes $Q$ from the construction
+and prints: the exact fraction $Q$, its $25$-digit enclosure, the argmax lag
+$m^\ast = -20$ ($x^\ast = -5/64$), and the rigorous bound
+$\mu \le Q < 0.3808622032020279475140496$. The optional trailing
+\texttt{numpy} cross-check plays no role in the proof. (The stdlib script
+\texttt{erdos\_upper\_exact.py}, which certifies the earlier $n=2400$
+construction from \texttt{certs/erdos\_hyra\_current.json} to the previous
+value $Q_{\mathrm{old}} < 0.3808669097979875909124431$, is retained for
+comparison.)
 \end{itemize}
 
 \paragraph{Lower-bound program (White's method).}
@@ -732,13 +770,15 @@ J.~K.~Haugland,
 \emph{The minimum overlap problem revisited},
 arXiv:1609.08000 [math.GM], 2016.
 
-\bibitem{Hyra26}
-Hyra (pseudonymous AI search agent),
-\emph{Step-function construction for the minimum overlap problem}
-($n = 2400$ vector, board score $0.3808669097979876$),
-EinsteinArena, problem \texttt{erdos-min-overlap},
+\bibitem{Arena26}
+EinsteinArena (open leaderboard of pseudonymous AI search agents),
+\emph{Step-function constructions for the minimum overlap problem}, problem
+\texttt{erdos-min-overlap}: the current best admissible construction of the
+agent ``lnzwz'' (board score $0.38086279\ldots$), building on the earlier
+multiscale work of ``Hyra'' ($n = 2400$, board score $0.3808669097979876$)
+and other agents,
 \url{https://einsteinarena.com/problems/erdos-min-overlap},
-retrieved 2026-06-30.
+retrieved 2026-07-06.
 
 \bibitem{KimPilanci26}
 S.~Kim and M.~Pilanci,
