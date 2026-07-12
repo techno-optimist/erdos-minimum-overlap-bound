@@ -3,10 +3,10 @@
 
 Some board vectors clear the EinsteinArena verifier without being *exactly*
 admissible: the verifier tests ``float(np.sum(f)) == n/2`` in binary64, which
-can round a vector whose exact rational sum is a few ULP away from ``n/2`` up
-(or down) to exactly ``n/2``.  A *proven* bound on the minimum-overlap constant
-mu requires an f that is admissible in exact arithmetic: entries in [0,1] and
-sum EXACTLY n/2.
+rounds a vector whose exact rational sum is within half an ULP of ``n/2`` (at
+the scale of ``n/2``) up (or down) to exactly ``n/2``.  A *proven* bound on the
+minimum-overlap constant mu requires an f that is admissible in exact
+arithmetic: entries in [0,1] and sum EXACTLY n/2.
 
 This module supplies the minimal, deterministic repair for the *deficit* case
 (exact sum slightly BELOW n/2), which is the interesting one: the board's own
@@ -14,10 +14,11 @@ uniform rescale ``f <- f*(n/2)/sum`` would multiply every entry UP by a factor
 > 1 and push any box-saturated (value==1) cell above 1, breaking admissibility
 -- and, historically, making the exact score strictly worse.  Instead we add
 the exact integer deficit to the lowest-index cells that still have headroom
-below 1.  Because the added mass is a few ULP placed in low-value cells far
-from the correlation argmax, the board score is unchanged to full float
-precision, while the vector becomes exactly admissible and yields a genuine
-proven bound.
+below 1.  Because the added mass is far below one ULP at the sum's scale and
+placed in low-value cells whose contribution to the maximizing correlation is
+negligible (bounded by the deficit itself), the board score is unchanged to
+full float precision, while the vector becomes exactly admissible and yields a
+genuine proven bound.
 
 Everything on the certified path is exact (``fractions`` / integers only).
 The optional float board-score cross-check uses numpy purely to demonstrate
@@ -39,18 +40,29 @@ from fractions import Fraction
 DIGITS = 25
 
 
+def require(cond, msg):
+    """Hard validation gate on the certified path.
+
+    An explicit ``raise`` (never ``assert``), so it cannot be stripped by
+    ``python -O`` / ``PYTHONOPTIMIZE=1``: these checks are load-bearing for
+    the soundness of every certified bound.
+    """
+    if not cond:
+        raise SystemExit("FATAL: " + msg)
+
+
 def dyadic_ints(vals):
     """Exact common-power-of-two representation of a list of binary64 values.
 
     Returns (A, L) with each value == A_i / 2**L exactly and every A_i integer.
     """
     fr = [Fraction(v) for v in vals]
-    assert all(0 <= x <= 1 for x in fr), "raw vector leaves [0,1]"
+    require(all(0 <= x <= 1 for x in fr), "raw vector leaves [0,1]")
     Ls = []
     for x in fr:
         q = x.denominator
         l = q.bit_length() - 1
-        assert q == (1 << l), "value is not an exact dyadic rational"
+        require(q == (1 << l), "value is not an exact dyadic rational")
         Ls.append(l)
     L = max(Ls)
     A = [x.numerator << (L - l) for x, l in zip(fr, Ls)]
@@ -88,9 +100,9 @@ def minimal_repair(A, L):
             A2[i] += add
             rem -= add
             mods.append([i, add])
-    assert rem == 0, "could not place the deficit within available headroom"
-    assert sum(A2) == target, "repaired sum is not exactly n/2"
-    assert all(0 <= a <= cap for a in A2), "repaired vector leaves [0,1]"
+    require(rem == 0, "could not place the deficit within available headroom")
+    require(sum(A2) == target, "repaired sum is not exactly n/2")
+    require(all(0 <= a <= cap for a in A2), "repaired vector leaves [0,1]")
     return A2, deficit, mods
 
 
@@ -150,6 +162,8 @@ def repaired_values(A2, L):
 
 
 def main():
+    if not __debug__:
+        raise SystemExit("refusing to run under -O: validation is load-bearing")
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(2)
@@ -174,7 +188,7 @@ def main():
     # cross-check against a stored repair_delta if the cert carries one
     if "repair_delta" in obj:
         stored = [list(x) for x in obj["repair_delta"]]
-        assert stored == mods, f"stored repair_delta {stored} != recomputed {mods}"
+        require(stored == mods, f"stored repair_delta {stored} != recomputed {mods}")
         print("  stored repair_delta matches the independently recomputed delta.  OK")
 
     # exact scores (stdlib only)

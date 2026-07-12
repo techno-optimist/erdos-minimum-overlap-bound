@@ -22,7 +22,12 @@ For each construction this RECOMPUTES (never echoes) from the raw board vector:
 
 Everything on the certified path is exact integer/rational arithmetic (stdlib
 ``fractions`` only).  The float board score is an optional numpy cross-check
-and plays no role in any proof.
+and plays no role in any proof (when numpy is present, a claimed
+``board_score`` that fails the 1e-12 cross-check is a hard failure).
+
+Validation is enforced with explicit raises (never bare ``assert``), the
+recomputed admissibility route must match the route the cert claims, and the
+script refuses to run under ``python -O`` / ``PYTHONOPTIMIZE``.
 
 Usage:
     python3 certify_leaders.py            # certify the shipped leader certs
@@ -38,7 +43,7 @@ CERTS = os.path.join(os.path.dirname(HERE), "certs")
 sys.path.insert(0, HERE)
 from repair_admissibility import (          # noqa: E402
     dyadic_ints, minimal_repair, exact_score, board_score_float,
-    repaired_values, fmt_down, fmt_up, DIGITS,
+    repaired_values, fmt_down, fmt_up, DIGITS, require,
 )
 
 # v1.1 published bound (recomputed by `make verify`); used here only for context.
@@ -66,18 +71,63 @@ def certify(path):
     print(label)
     print("-" * 74)
 
-    # 1. float board cross-check
+    require(n % 2 == 0, f"{label}: n = {n} is odd; this certifier assumes even n")
+
+    # 1. float board cross-check (hard failure if the cert's claimed
+    #    board_score does not match the recomputation to 1e-12; float scores
+    #    are summation-order-dependent at the ~1 ULP level, hence the
+    #    tolerance rather than bit equality)
     board_note = ""
     try:
         bs = board_score_float(vals)
         claimed = obj.get("board_score")
         if claimed is not None:
-            board_note = f"  (leaderboard {claimed!r}; match={abs(bs - claimed) < 1e-12})"
-        print(f"  raw float board score = {bs!r}{board_note}")
+            match = abs(bs - claimed) < 1e-12
+            board_note = f"  (leaderboard {claimed!r}; match={match})"
+            print(f"  raw float board score = {bs!r}{board_note}")
+            require(match,
+                    f"{label}: recomputed float board score {bs!r} does not match "
+                    f"the cert's claimed board_score {claimed!r} (tolerance 1e-12)")
+        else:
+            print(f"  raw float board score = {bs!r}")
     except ImportError:
         print("  raw float board score = (numpy unavailable; skipped)")
 
-    # 2 + 3. admissibility route -> admissible integer vector A_adm over 2**L
+    # 2. provenance enforcement: the cert's CLAIMED admissibility route and
+    #    raw-sum offset must match what is recomputed from the raw vector.
+    #    A tampered vector cannot be silently reclassified onto another route.
+    offset_units = sum(A) - (n // 2) * cap    # > 0 surplus, < 0 deficit, 0 exact
+    recomputed_route = ("exact" if offset_units == 0
+                        else "surplus" if offset_units > 0 else "deficit")
+    claimed_routes = set()
+    if "raw_sum_minus_half_n_units" in obj:
+        claimed_routes.add("surplus")
+        require(offset_units == int(obj["raw_sum_minus_half_n_units"]),
+                f"{label}: recomputed raw-sum offset {offset_units} units of 2^-{L} "
+                f"!= cert's claimed raw_sum_minus_half_n_units "
+                f"{obj['raw_sum_minus_half_n_units']}")
+    if "raw_deficit_units" in obj:
+        claimed_routes.add("deficit")
+        require(-offset_units == int(obj["raw_deficit_units"]),
+                f"{label}: recomputed raw deficit {-offset_units} units of 2^-{L} "
+                f"!= cert's claimed raw_deficit_units {obj['raw_deficit_units']}")
+    if "repair" in obj or "repair_delta" in obj:
+        claimed_routes.add("deficit")
+    adm_claim = obj.get("admissibility")
+    if adm_claim is not None:
+        require(str(adm_claim).startswith("exact-uniform-rescale"),
+                f"{label}: unrecognized 'admissibility' claim in cert: {adm_claim!r}")
+        claimed_routes.add("surplus")
+    require(len(claimed_routes) <= 1,
+            f"{label}: cert claims contradictory admissibility routes "
+            f"{sorted(claimed_routes)}")
+    if claimed_routes:
+        claimed_route = claimed_routes.pop()
+        require(recomputed_route == claimed_route,
+                f"{label}: recomputed admissibility route '{recomputed_route}' "
+                f"!= cert's claimed route '{claimed_route}'")
+
+    # 3. admissibility route -> admissible integer vector A_adm over 2**L
     if raw_sum == half:
         route = "EXACT (admissible as given)"
         A_adm = A
@@ -88,8 +138,9 @@ def certify(path):
         P = [Fraction(n, 2) * Fraction(a, cap) / raw_sum for a in A]
         over = [i for i, p in enumerate(P) if p > 1]
         under = [i for i, p in enumerate(P) if p < 0]
-        assert not over and not under, (
-            f"exact uniform rescale leaves [0,1]: {len(over)} over, {len(under)} under")
+        require(not over and not under,
+                f"{label}: exact uniform rescale leaves [0,1]: "
+                f"{len(over)} over, {len(under)} under")
         route = "SURPLUS -> exact uniform rescale (shrink); 0 box violations"
         detail = (f"     raw sum exceeds n/2 by {surplus} units of 2^-{L} "
                   f"(= {float(Fraction(surplus, cap)):.3e}); every entry multiplied by "
@@ -115,7 +166,8 @@ def certify(path):
         # if the cert stored a repair_delta, verify it matches the recomputation.
         if "repair_delta" in obj:
             stored = [list(x) for x in obj["repair_delta"]]
-            assert stored == mods, f"stored repair_delta {stored} != recomputed {mods}"
+            require(stored == mods,
+                    f"{label}: stored repair_delta {stored} != recomputed {mods}")
         sat = sum(1 for a in A if a == cap)
         route = "DEFICIT -> minimal sub-ULP admissibility repair"
         print(f"  admissibility: {route}")
@@ -129,7 +181,8 @@ def certify(path):
             b_raw = board_score_float(vals)
             b_rep = board_score_float(repaired_values(A_adm, L))
             print(f"     board score raw==repaired (bit-identical)? {b_raw == b_rep}")
-            assert b_raw == b_rep, "repair changed the float board score!"
+            require(b_raw == b_rep,
+                    f"{label}: repair changed the float board score!")
         except ImportError:
             pass
         score, m_star = exact_score(A_adm, L)
@@ -154,6 +207,8 @@ def _emit(score, m_star, n):
 
 
 def main():
+    if not __debug__:
+        raise SystemExit("refusing to run under -O: validation is load-bearing")
     paths = sys.argv[1:] or DEFAULT_CERTS
     results = [certify(p) for p in paths]
     print("=" * 74)

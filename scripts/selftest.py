@@ -60,6 +60,8 @@ def surplus_rescaled_score(A, L, n):
 
 
 def main():
+    if not __debug__:
+        raise SystemExit("refusing to run under -O: validation is load-bearing")
     print("SELFTEST: recompute certified bounds from shipped vectors")
 
     # 1. v1.1 theorem intact: erdos_dc_n512.json still recomputes Q_V11 exactly.

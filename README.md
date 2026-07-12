@@ -50,7 +50,8 @@ so v1.2 applies the identical engine to the two current best constructions:
   board only because `float(np.sum)` rounds up to exactly `n/2`. A uniform
   rescale would push its 48 saturated (`=1`) cells above 1. We instead apply a
   **minimal sub-ULP admissibility repair**: add the exact deficit to headroom
-  cells (here, the single first cell — a zero cell far from the argmax). The
+  cells (here, the single first cell — a zero cell whose contribution to the
+  maximizing correlation is bounded by the deficit itself, hence negligible). The
   result is exactly admissible with a **bit-identical board score**, certifying
   `Q_L`. The repair delta ships in the cert, and `make verify` shows exactly the
   one cell that moved and that the score is unchanged. This is categorically
@@ -116,10 +117,16 @@ Honest scoping is the point of the note, so it is worth repeating here:
   constructions (Hyra `0.38085942`, lnzwz `0.38085906`) *are* certified here.
   The lemma supplies the missing exact continuum step for any step construction.
 - **The `Q_L` bound carries a repair caveat, stated in full.** The lnzwz vector
-  is not exactly admissible as submitted (its exact sum is `2.5` ULP below
-  `n/2`); `Q_L` is a proven bound only *after* the minimal sub-ULP repair, which
-  is minimal, forced, and score-preserving to full float precision. The clean
-  headline `Q_H` (Hyra) needs no such repair.
+  is not exactly admissible as submitted: its exact sum sits about `0.011` ULP
+  at scale `n/2 = 256` below `n/2` (equivalently ≈ 2.9 × the scale-1 unit
+  `2⁻⁵²`) — far below the half-ULP rounding threshold, which is exactly why
+  `float(sum)` rounds up to `256.0` and the vector clears the board. It
+  satisfies the board's own official float-based admissibility standard, the
+  standard all submissions are judged by, so it is a legitimate record; the
+  shortfall is a floating-point-representation matter, not a defect in the
+  construction. `Q_L` is a proven bound only *after* the minimal sub-ULP
+  repair, which is minimal, forced, and score-preserving to full float
+  precision. The clean headline `Q_H` (Hyra) needs no such repair.
 - See Section 6 of the note (the pending-verification ledger) for the full
   list of items not yet machine-verified.
 
@@ -145,7 +152,9 @@ make selftest   # re-derives every bound and asserts the golden rationals
   `μ ≤ Q < 0.3808622032020279475140496` (the v1.1 theorem, intact).
 - **`make verify-leaders`** (`python3 scripts/certify_leaders.py`) certifies the
   two current best arena constructions, **recompute-not-echo**: for each it
-  prints the raw float board score (cross-checked against the leaderboard), the
+  prints the raw float board score (cross-checked against the leaderboard to a
+  `1e-12` tolerance — float scores are summation-order-dependent at the ~1 ULP
+  level, so bit equality is not expected), the
   exact admissibility status, the minimal repair where needed, and the exact
   rational proven bound with its 25-digit enclosure. Output ends with the clean
   headline `μ ≤ Q_H < 0.3808594223653146192081122` (Hyra, admissible outright)

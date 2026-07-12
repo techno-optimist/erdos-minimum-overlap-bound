@@ -49,6 +49,8 @@ DIGITS = 25
 
 
 def main():
+    if not __debug__:
+        raise SystemExit("refusing to run under -O: validation is load-bearing")
     json_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_JSON_PATH
     vals = json.load(open(json_path))["values"]
     assert len(vals) == N, f"expected n={N}, got {len(vals)}"

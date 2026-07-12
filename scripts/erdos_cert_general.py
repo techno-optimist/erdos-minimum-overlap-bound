@@ -21,16 +21,21 @@ except ImportError:
 
 DIGITS = 25
 
+def require(cond, msg):
+    """Explicit raise (never ``assert``): load-bearing, survives `python -O`."""
+    if not cond:
+        raise SystemExit("FATAL: " + msg)
+
 def certify(vals):
     n = len(vals)
     fr = [Fraction(v) for v in vals]
-    assert all(0 <= x <= 1 for x in fr), "raw vector leaves [0,1]"
+    require(all(0 <= x <= 1 for x in fr), "raw vector leaves [0,1]")
     # common power-of-two denominator
     Ls = []
     for x in fr:
         q = x.denominator
         l = q.bit_length() - 1
-        assert q == (1 << l), "float denom not power of two"
+        require(q == (1 << l), "float denom not power of two")
         Ls.append(l)
     L = max(Ls)
     A = [x.numerator << (L - l) for x, l in zip(fr, Ls)]
@@ -41,7 +46,8 @@ def certify(vals):
     P = [Fraction(n, 2) * a / S for a in A]   # f_i' exact in [0,1]
     over = [i for i, p in enumerate(P) if p > 1]
     under = [i for i, p in enumerate(P) if p < 0]
-    assert not over and not under, f"rescaled leaves [0,1]: {len(over)}>1 {len(under)}<0"
+    require(not over and not under,
+            f"rescaled leaves [0,1]: {len(over)}>1 {len(under)}<0")
     Q = [1 - p for p in P]                      # g_i = 1 - f_i'
     best_t, best_m = Fraction(-1), None
     for m in range(-(n - 1), n):
@@ -65,6 +71,8 @@ def fmt_up(score):
     return _fmt(-((-(p * 10**DIGITS)) // q))
 
 def main():
+    if not __debug__:
+        raise SystemExit("refusing to run under -O: validation is load-bearing")
     vals = json.load(open(sys.argv[1]))["values"]
     n = len(vals)
     fr = [Fraction(v) for v in vals]

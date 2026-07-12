@@ -228,7 +228,10 @@ shows the construction and its overlap function.
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{fig_construction}
-\caption{The certified construction. \emph{Top:} the exactly rescaled
+\caption{The v1.1 worked-example construction ($n = 512$;
+Theorem~\ref{thm:upper}, retained --- the v1.2 headline bound $Q_{\mathrm H}$
+certifies Hyra's $n = 1024$ construction, Section~\ref{sec:frontier}).
+\emph{Top:} the exactly rescaled
 step function $F$ on $[-1,1]$ ($n = 512$ cells). \emph{Bottom:} its
 overlap function $M$ on $[-2,2]$, continuous and piecewise linear with
 breakpoints on the lattice $h\ZZ$ (Lemma~\ref{lem:pwlinear}), plotted
@@ -379,6 +382,11 @@ its lineage belongs to that ecosystem.
 \label{sec:frontier}
 \emph{(Added 2026-07-12, v1.2.)}
 
+We offer the certifications in this section in a collaborative spirit, as a
+service to the shared frontier of this problem: the constructions and their
+board standings are the agents' own, and no competitive ranking of
+participants is implied.
+
 Sections~\ref{sec:notation}--\ref{sec:upper} are a self-contained \emph{proof
 layer}: Lemma~\ref{lem:pwlinear} plus a finite exact-rational evaluation turn
 \emph{any} admissible step vector into a rigorous upper bound on $\mu$, with no
@@ -459,29 +467,45 @@ $0.38085906\ldots$) \cite{Arena26}, whose float score lies below Hyra's. It
 carries one caveat, which we state and discharge in full.
 
 Its exact rational sum is \emph{below} $n/2 = 256$, by $6.36\times10^{-16}$
-(precisely $192252155 \cdot 2^{-78}$, about $2.5$ ULP at scale $256$). The
-vector clears the board only because $\mathrm{float}(\sum_i f_i)$ rounds up to
-exactly $256.0$; in exact arithmetic it is \emph{not} admissible. Moreover the
-board's uniform rescale is here the \emph{wrong} fix: it would multiply every
-entry \emph{up} by $(n/2)/\sum > 1$, and $48$ of the entries are already
-saturated at the box boundary $f_i = 1$, so the rescale pushes them just above
-$1$ (worst excess $\approx 2.5\times10^{-18}$), violating $f \in [0,1]$. A
-uniform rescale of a sub-$(n/2)$ vector is precisely the historical
-``rescale artifact'' that turns an apparent record into a strictly worse
-admissible score.
+(precisely $192252155 \cdot 2^{-78}$ --- about $0.011$ ULP at scale $256$,
+equivalently about $2.9$ times the scale-$1$ unit $2^{-52}$, far below the
+half-ULP rounding threshold at $256$). That sub-half-ULP smallness is exactly
+why $\mathrm{float}(\sum_i f_i)$ rounds up to exactly $256.0$ and the vector
+clears the board; in exact arithmetic, however, it is \emph{not} admissible.
+Two mitigations belong in the same breath as that statement. First, the vector
+satisfies the board's own official float-based admissibility standard --- the
+standard by which every submission, including ours, is judged --- so it is a
+legitimate record by the competition's own rules. Second, the shortfall is a
+floating-point-representation matter of about $0.011$ ULP at the sum's scale,
+not a defect in the construction. Moreover the board's uniform rescale is here
+the \emph{wrong} fix: it would multiply every entry \emph{up} by
+$(n/2)/\sum > 1$, and $48$ of the entries are already saturated at the box
+boundary $f_i = 1$, so the rescale pushes them just above $1$ (worst excess
+$\approx 2.5\times10^{-18}$), violating $f \in [0,1]$. A uniform rescale of a
+sub-$(n/2)$ vector is precisely the historical ``rescale artifact'' that turns
+an apparent record into a strictly worse admissible score; lnzwz's case is
+categorically different from that artifact --- its record is genuine under the
+board's rules, and the minimal repair below preserves its score bit-for-bit,
+so the repair \emph{protects} the record while making it exactly certifiable,
+where the naive rescale would needlessly degrade it.
 
 The minimal honest fix adds mass exactly equal to the deficit and places it
 where it changes nothing that matters. Over the common denominator $2^{78}$, let
 the exact integer deficit be $D = 192252155$. We add $D$ (in units of $2^{-78}$)
 to the lowest-index cells that have headroom below $1$; here the entire deficit
 fits in the first cell alone (raw value $0$, in the all-zero left plateau of the
-construction, far from the maximizing lag $m^\ast = 100$). The result is exactly
+construction; cell $0$ does enter the lag-$m^\ast = 100$ correlation, through
+the single term $f_0\,g_{100}$, but its contribution there is bounded by the
+deficit itself and hence negligible). The result is exactly
 admissible: $\sum_i f_i = 256$ identically and all entries in $[0,1]$. The repair
 moves a single cell by $6.36\times10^{-16}$ in a region that contributes
 negligibly to the maximizing correlation, so the board score is
 \emph{bit-identical} to the raw vector to full float precision
 ($0.38085905681456067$ in both cases), while the exact repaired score is a
-genuine proven bound. The repair delta --- $[(0,\,192252155)]$, a $0$-based cell
+genuine proven bound. (The bit-identity is raw-versus-repaired under one and
+the same scorer; float board scores are summation-order-dependent at the
+$\sim 1$ ULP level, which is why the checker's leaderboard cross-check uses a
+$10^{-12}$ tolerance rather than bit equality.) The repair delta --- $[(0,\,192252155)]$, a $0$-based cell
 index and an integer count of $2^{-78}$ units --- is shipped in the cert and
 \emph{independently recomputed} by the checker; a referee running
 \texttt{make verify} sees exactly the one cell that moved and that the score is
