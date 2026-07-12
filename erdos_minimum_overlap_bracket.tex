@@ -29,16 +29,17 @@ program}
 \author{Kevin Russell\thanks{%
 Correspondence: \texttt{kevinrussell@gmail.com}. Computer-assisted note,
 prepared with CHRONOS, ProjectForty2's autonomous research agent; the author
-takes responsibility for all claims. The upper-bound \emph{construction} was
-obtained by refining, via a difference-of-convex trust-region optimization, the
-current best admissible EinsteinArena construction of the agent ``lnzwz''
-(problem \texttt{erdos-min-overlap}), building on the earlier
-multiscale/step-function work of ``Hyra'' and other arena agents; the
-lower-bound \emph{method} is due to E.~P.~White \cite{White22}. See the
-attribution statement in Section~\ref{sec:intro}. Verification artifacts are
+takes responsibility for all claims. The certified upper-bound
+\emph{constructions} are those of the EinsteinArena agents ``Hyra'' (the
+$n=1024$ headline construction) and ``lnzwz\_AI4M\_Agent'' (a tighter $n=512$
+construction, certified after a documented minimal admissibility repair), with
+our earlier difference-of-convex-refined $n=512$ construction retained from
+v1.1; the lower-bound \emph{method} is due to E.~P.~White \cite{White22}. This
+note is the exact \emph{proof layer}; the constructions are credited to their
+authors. See the attribution statement in Section~\ref{sec:intro}. Verification artifacts are
 listed in Appendix~\ref{sec:repro}.}\\[3pt]
 {\normalsize ProjectForty2 --- CHRONOS agent}}
-\date{July 3, 2026}
+\date{July 3, 2026; frontier update (v1.2), July 12, 2026}
 
 \begin{document}
 \maketitle
@@ -46,21 +47,24 @@ listed in Appendix~\ref{sec:repro}.}\\[3pt]
 \begin{abstract}
 Let $\mu$ be the Erd\H{o}s minimum overlap constant. We prove
 \[
-0.379005 \;\le\; \mu \;\le\; Q \;<\; 0.3808622032020279475140496,
+0.379005 \;\le\; \mu \;\le\; 0.3808594223653146192081122,
 \]
-where $Q$ is an explicit rational number, evaluated in exact rational
-arithmetic. The upper bound is new: it improves the best previously
-\emph{proven} upper bound $0.3809268534330870$ of Haugland \cite{Haugland16}
-by $6.4650\times10^{-5}$, and lies below the floating-point records reported
-by recent AI-search systems \cite{AlphaEvolve25,TTT26,SimpleTES26}. It is
-obtained by evaluating, exactly, the overlap
-functional of an explicit admissible $n=512$ step-function construction; a short
-piecewise-linearity lemma reduces the continuum supremum to a finite exact
-computation. The construction was found by a difference-of-convex trust-region
-optimization of the (nonconvex) discrete minimax, warm-started from the current
-best EinsteinArena construction of the agent ``lnzwz''; as with any
-construction, its validity as an upper bound rests solely on the exact
-certification, not on the search method. The lower bound is Theorem~1 of White
+the upper bound an explicit rational evaluated in exact rational arithmetic. It
+improves the best previously \emph{proven} upper bound $0.3809268534330870$ of
+Haugland \cite{Haugland16} by $6.743\times10^{-5}$, and lies below the
+floating-point records reported by recent AI-search systems
+\cite{AlphaEvolve25,TTT26,SimpleTES26}. The proof layer is a short
+piecewise-linearity lemma that reduces the continuum supremum of any admissible
+step construction to a finite exact computation, with no floating-point quantity
+on the certified path. We apply it to the current best admissible EinsteinArena
+constructions for this problem: the headline bound certifies the $n=1024$
+construction of the agent ``Hyra'', which is admissible outright; the same
+engine re-certifies our earlier $n=512$ construction (value
+$Q<0.3808622032020279475140496$, the v1.1 result, retained) and, after a fully
+documented minimal sub-ULP admissibility repair, the even tighter $n=512$
+construction of the agent ``lnzwz'' ($\mu\le0.3808590568145606537807120$). All
+constructions are credited to their arena authors; our contribution on the upper
+side is the exact proof layer. The lower bound is Theorem~1 of White
 \cite{White22}, quoted unchanged. On the lower-bound side we additionally report a computer-assisted
 study of White's convex program: a scaled reimplementation up to
 $N=2\times10^{5}$, an independent interval-arithmetic verification harness
@@ -120,7 +124,9 @@ reports $0.380876\ldots$ \cite{TTT26}, and SimpleTES reports
 $0.380868\ldots$ \cite{SimpleTES26}; open iterative optimization on the
 EinsteinArena platform \cite{Arena26} has produced admissible step-function
 constructions with float scores as low as $0.38086279\ldots$ (agent
-``lnzwz''), which we refine below. These reports are numerical scores of
+``lnzwz''), which we refine below (Section~\ref{sec:upper}); since the v1.1
+release the leaderboard has advanced further, and Section~\ref{sec:frontier}
+certifies the current best constructions. These reports are numerical scores of
 discrete constructions; to our knowledge none is accompanied by an exact
 evaluation together with a proof that the discrete score bounds the
 continuum constant $\mu$ --- precisely the two steps supplied below
@@ -133,9 +139,11 @@ peer-reviewed, we quote \eqref{eq:white} as the lower side of the bracket,
 and nothing in this note depends on that choice.
 
 \paragraph{What this note proves.} Our headline result
-(Theorem~\ref{thm:main}) replaces the upper side of the bracket by an exact
-rational $Q < 0.3808622032020279475140496$, a reduction of the bracket width
-by about $3.4\%$. The upper bound is theorem-grade in the following concrete
+(Theorem~\ref{thm:main}, via Theorem~\ref{thm:hyra}) replaces the upper side of
+the bracket by an exact rational $Q_{\mathrm H} < 0.3808594223653146192081122$
+certifying the current best admissible-outright arena construction
+(Section~\ref{sec:frontier}), a reduction of the Haugland bracket width by about
+$3.5\%$. The upper bound is theorem-grade in the following concrete
 sense: it follows from one short lemma proved here
 (Lemma~\ref{lem:pwlinear}), the Swinnerton-Dyer equivalence between the
 discrete and continuum problems (quoted from \cite{Haugland96,White22}), and
@@ -148,20 +156,23 @@ not establish, including a machine-verified feasibility certificate for
 White's program and an explicitly demarcated list of items still pending
 verification.
 
-\paragraph{Attribution.} This is a computer-assisted tightening and
-certification exercise, and credit belongs where the mathematics originated.
-The step-function \emph{construction} behind the new upper bound belongs to the
-lineage of the EinsteinArena ecosystem (problem \texttt{erdos-min-overlap})
-\cite{Arena26}, an ecosystem of AI agents doing open iterative optimization on
-this problem: it was found by a difference-of-convex trust-region optimization
-warm-started from the current best admissible arena construction of the agent
-``lnzwz'', which in turn builds on the earlier multiscale/step-function work of
-``Hyra'' and other arena agents. We do not claim to have invented the
-construction from scratch. Our contribution on the upper side is threefold: the
-difference-of-convex optimization that improved on the field, the
-piecewise-linearity lemma, and the exact rational evaluation; the
-rigor of the bound rests entirely on the last two, the search method being only
-how the construction was found. The lower-bound
+\paragraph{Attribution.} This is a computer-assisted certification exercise,
+and credit belongs where the mathematics originated. The step-function
+\emph{constructions} certified here belong to the EinsteinArena ecosystem
+(problem \texttt{erdos-min-overlap}) \cite{Arena26}, in which AI agents do open
+iterative optimization on this problem. The new headline upper bound
+(Section~\ref{sec:frontier}) certifies the $n=1024$ construction of the agent
+``Hyra''; a strictly tighter $n=512$ construction of the agent
+``lnzwz\_AI4M\_Agent'' is certified after a documented minimal admissibility
+repair; and our own earlier $n=512$ construction (found by a
+difference-of-convex trust-region optimization warm-started from an earlier
+``lnzwz'' construction) is retained from v1.1 as the worked example of the proof
+layer. We do not claim to have invented any of these constructions from scratch,
+and make no priority claim over other participants' live work. Our contribution
+on the upper side is the reusable proof layer --- the piecewise-linearity lemma
+and the exact rational evaluation --- together with the difference-of-convex
+construction of v1.1; the rigor of every bound rests solely on the exact
+certification, never on how a construction was found. The lower-bound
 \emph{method} --- the Fourier-analytic constraint family, the convex program,
 and its dual verification strategy --- is entirely White's \cite{White22};
 our contribution there is limited to scaling his program to larger $N$,
@@ -363,6 +374,173 @@ in-progress work by others, including other EinsteinArena participants; our
 construction was obtained by refining lnzwz's live arena construction, and
 its lineage belongs to that ecosystem.
 \end{remark}
+
+\section{The frontier since v1.1: certifying the current best constructions}
+\label{sec:frontier}
+\emph{(Added 2026-07-12, v1.2.)}
+
+Sections~\ref{sec:notation}--\ref{sec:upper} are a self-contained \emph{proof
+layer}: Lemma~\ref{lem:pwlinear} plus a finite exact-rational evaluation turn
+\emph{any} admissible step vector into a rigorous upper bound on $\mu$, with no
+floating-point quantity on the certified path. Section~\ref{sec:upper}
+exercised it on one construction (our difference-of-convex-refined $n=512$
+vector, value $Q$). Since the v1.1 release the open EinsteinArena leaderboard
+\cite{Arena26} for \texttt{erdos-min-overlap} has advanced past $Q$: two new
+admissible step constructions score below it. We certify both here, exactly,
+with the identical engine, and credit their authors. This note remains a proof
+layer; the constructions are theirs.
+
+Throughout, $h = 2/n$, $F$ and $M$ are as in Section~\ref{sec:upper}, and
+``exact rescale'' means the board's own normalization
+$f \mapsto f\,(n/2)/\sum_i f_i$ carried out in rational arithmetic. The board's
+float scorer applies this rescale only when
+$\mathrm{float}(\sum_i f_i) \ne n/2$; for both vectors below, the raw double sum
+rounds to exactly $n/2$, so \emph{the board rescales neither one}. Their exact
+rational sums, however, are not exactly $n/2$, and the two lie on opposite sides
+of it --- which is exactly what separates a clean certification from one needing
+a documented repair.
+
+\subsection{Hyra, $n = 1024$: admissible outright (new headline bound)}
+\label{sec:hyra1024}
+
+The construction is the $n = 1024$ step vector submitted by the agent ``Hyra''
+(EinsteinArena solution \texttt{2406}, board score $0.38085942\ldots$)
+\cite{Arena26}. Its exact rational sum \emph{exceeds} $n/2 = 512$ by
+$8.26\times10^{-14}$ (precisely $104755373341857971 \cdot 2^{-100}$), so the
+board's exact rescale is a \emph{shrink} by a factor $< 1$: every entry is
+multiplied down, an exact integer check confirms all $1024$ rescaled entries
+remain in $[0,1]$ (zero box violations), and the rescaled vector has sum exactly
+$n/2$. It is therefore admissible for \eqref{eq:cont} with no repair and no
+asterisk --- this is the board's own normalization, applied exactly, the same
+mechanism used for the $n = 2400$ vector in the first version of this note.
+
+\begin{theorem}[new headline upper bound; construction: Hyra \cite{Arena26}]
+\label{thm:hyra}
+Let $\mu$ be the Erd\H{o}s minimum overlap constant. Then
+\[
+\mu \;\le\; Q_{\mathrm H} \;:=\;
+\frac{160436714291416953503550101681211943266156909959162008619382291786}
+     {421249166674228882771921090127735354415772065339629144740087893289},
+\]
+and
+\[
+0.3808594223653146192081121 \;\le\; Q_{\mathrm H} \;<\;
+0.3808594223653146192081122 .
+\]
+In particular $\mu \le 0.3808594223653146192081122$, improving both
+Haugland's \eqref{eq:haugland} (by $6.743\times10^{-5}$) and the v1.1 value $Q$
+of Theorem~\ref{thm:upper} (by $2.781\times10^{-6}$).
+\end{theorem}
+
+\begin{proof}
+Identical to Theorem~\ref{thm:upper}, with $n = 1024$. The raw entries are exact
+dyadic rationals over the common denominator $2^{100}$; writing
+$f_i = A_i/2^{100}$ and $S = \sum_i A_i$, the exact rescale
+$P_i = (n/2)\,A_i / S$ satisfies $\sum_i P_i = n/2$ and, by exact integer
+comparison, $0 \le P_i \le 1$ for all $i$ (zero violations). All
+$2n - 1 = 2047$ lattice correlations $\sum_i P_i (1 - P_{i+m})$ are exact
+rationals; the maximum occurs at lag $m^\ast = -266$ (i.e.
+$x^\ast = 2 m^\ast/n = -133/256$), and
+$\frac{2}{n}\max_m \sum_i P_i (1 - P_{i+m}) = Q_{\mathrm H}$ in lowest terms. By
+Lemma~\ref{lem:pwlinear}(iii) this equals $\sup_x M(x)$, so
+$\mu \le Q_{\mathrm H}$ by \eqref{eq:cont}. The $25$-digit enclosure is exact
+integer division. The certified path is exact throughout; see
+\texttt{scripts/certify\_leaders.py} on \texttt{certs/hyra\_n1024.json}
+(Appendix~\ref{sec:repro}).
+\end{proof}
+
+\subsection{lnzwz, $n = 512$: exactly certifiable after a documented minimal
+admissibility repair}
+\label{sec:lnzwz512}
+
+The current board leader is the $n = 512$ step vector of the agent
+``lnzwz\_AI4M\_Agent'' (EinsteinArena solution \texttt{2407}, board score
+$0.38085906\ldots$) \cite{Arena26}, whose float score lies below Hyra's. It
+carries one caveat, which we state and discharge in full.
+
+Its exact rational sum is \emph{below} $n/2 = 256$, by $6.36\times10^{-16}$
+(precisely $192252155 \cdot 2^{-78}$, about $2.5$ ULP at scale $256$). The
+vector clears the board only because $\mathrm{float}(\sum_i f_i)$ rounds up to
+exactly $256.0$; in exact arithmetic it is \emph{not} admissible. Moreover the
+board's uniform rescale is here the \emph{wrong} fix: it would multiply every
+entry \emph{up} by $(n/2)/\sum > 1$, and $48$ of the entries are already
+saturated at the box boundary $f_i = 1$, so the rescale pushes them just above
+$1$ (worst excess $\approx 2.5\times10^{-18}$), violating $f \in [0,1]$. A
+uniform rescale of a sub-$(n/2)$ vector is precisely the historical
+``rescale artifact'' that turns an apparent record into a strictly worse
+admissible score.
+
+The minimal honest fix adds mass exactly equal to the deficit and places it
+where it changes nothing that matters. Over the common denominator $2^{78}$, let
+the exact integer deficit be $D = 192252155$. We add $D$ (in units of $2^{-78}$)
+to the lowest-index cells that have headroom below $1$; here the entire deficit
+fits in the first cell alone (raw value $0$, in the all-zero left plateau of the
+construction, far from the maximizing lag $m^\ast = 100$). The result is exactly
+admissible: $\sum_i f_i = 256$ identically and all entries in $[0,1]$. The repair
+moves a single cell by $6.36\times10^{-16}$ in a region that contributes
+negligibly to the maximizing correlation, so the board score is
+\emph{bit-identical} to the raw vector to full float precision
+($0.38085905681456067$ in both cases), while the exact repaired score is a
+genuine proven bound. The repair delta --- $[(0,\,192252155)]$, a $0$-based cell
+index and an integer count of $2^{-78}$ units --- is shipped in the cert and
+\emph{independently recomputed} by the checker; a referee running
+\texttt{make verify} sees exactly the one cell that moved and that the score is
+unchanged.
+
+\begin{theorem}[upper bound after minimal repair; construction: lnzwz
+\cite{Arena26}]
+\label{thm:lnzwz}
+Let $f \in [0,1]^{512}$ be the lnzwz solution \texttt{2407}, repaired as above
+by adding the exact deficit $192252155 \cdot 2^{-78}$ to its first cell. Then
+$f$ is admissible for \eqref{eq:cont}, and
+\[
+\mu \;\le\; Q_{\mathrm L} \;:=\;
+\frac{8906018162028540388168670826976087326497984749751}
+     {23384026197294446691258957323460528314494920687616},
+\]
+with
+\[
+0.3808590568145606537807119 \;\le\; Q_{\mathrm L} \;<\;
+0.3808590568145606537807120 ,
+\]
+attained at lag $m^\ast = 100$ ($x^\ast = 25/64$). This is tighter than
+$Q_{\mathrm H}$ by $3.66\times10^{-7}$, but is certifiable only after the
+documented sub-ULP repair; we therefore keep $Q_{\mathrm H}$ as the clean
+headline and record $Q_{\mathrm L}$ as the tightest bound available with a
+transparent repair.
+\end{theorem}
+
+\begin{proof}
+Admissibility is the paragraph above (sum exactly $n/2$, box exact). The exact
+evaluation is Theorem~\ref{thm:upper} verbatim at $n = 512$ on the repaired
+vector; the maximizing lag is $m^\ast = 100$ and the reduced fraction is
+$Q_{\mathrm L}$. By Lemma~\ref{lem:pwlinear}(iii) and \eqref{eq:cont},
+$\mu \le Q_{\mathrm L}$. See \texttt{scripts/repair\_admissibility.py} and
+\texttt{scripts/certify\_leaders.py} on
+\texttt{certs/lnzwz\_n512\_repaired.json}.
+\end{proof}
+
+\begin{remark}[why the repair is legitimate, not a thumb on the scale]
+\label{rem:repair}
+Two properties make the repair unambiguous. (i) It is \emph{minimal and forced}:
+the added mass equals the exact deficit $D$ and nothing more, so the sum lands on
+$n/2$ exactly; no free parameter is tuned. (ii) It is \emph{score-preserving to
+full float precision}: raw and repaired vectors receive a bit-identical board
+score, so the repair cannot be manufacturing the improvement. This is
+categorically different from a uniform rescale of a sub-$(n/2)$ vector, which is
+neither minimal (it perturbs every cell) nor score-preserving (it drives
+saturated cells out of the box and, forced back in, strictly worsens the score).
+The exact-arithmetic separation --- Hyra above $n/2$ (rescale is a clean shrink),
+lnzwz below $n/2$ (rescale fails, minimal repair succeeds) --- is the whole
+content of the distinction, and \texttt{make verify} exhibits both sides.
+\end{remark}
+
+%%RESPRINT-HEADLINE: if an independent ProjectForty2 construction certifies a
+%% strictly tighter ADMISSIBLE-OUTRIGHT bound than Q_H (Theorem~\ref{thm:hyra}),
+%% insert it here as the new headline theorem -- same proof engine, credit to its
+%% author -- and promote its value into the abstract and Theorem~\ref{thm:main}
+%% (both currently carry Q_H = 0.3808594223653146192081122). Until then the
+%% headline is Hyra's Q_H.
 
 \section{The lower bound: White's program, scaled and certified}
 \label{sec:lower}
@@ -607,21 +785,26 @@ exclusion is established yet.
 \begin{theorem}[the bracket, with rigor status]\label{thm:main}
 Let $\mu$ be the Erd\H{o}s minimum overlap constant of \eqref{eq:cont}. Then
 \begin{gather*}
-0.379005 \;\le\; \mu \;\le\; Q \;<\; 0.3808622032020279475140496,
+0.379005 \;\le\; \mu \;\le\; Q_{\mathrm H} \;<\; 0.3808594223653146192081122,
 \qquad\text{where}\\[2pt]
-Q \;=\;
-\frac{117871142698558740618278313}
-     {309485009821345068724781056}\,.
+Q_{\mathrm H} \;=\;
+\frac{160436714291416953503550101681211943266156909959162008619382291786}
+     {421249166674228882771921090127735354415772065339629144740087893289}\,.
 \end{gather*}
 \emph{Rigor status of each side:}
 \begin{enumerate}
-\item[(U)] The upper bound is Theorem~\ref{thm:upper}: Lemma~\ref{lem:pwlinear}
+\item[(U)] The upper bound is Theorem~\ref{thm:hyra}: Lemma~\ref{lem:pwlinear}
 (proved above), the Swinnerton-Dyer equivalence \eqref{eq:cont} (quoted from
 \cite{Haugland96,White22}), and a finite exact-rational-arithmetic evaluation
-of an admissible $n = 512$ construction \cite{Arena26}, independently
+of Hyra's admissible $n = 1024$ construction \cite{Arena26}, independently
 re-runnable in under a second. No floating-point quantity enters the certified
 path. This side is new and improves \cite{Haugland16} by
-$6.4650\times10^{-5}$.
+$6.743\times10^{-5}$, and our own v1.1 value $Q < 0.3808622032020279475140496$
+(Theorem~\ref{thm:upper}, retained) by $2.781\times10^{-6}$. A strictly tighter
+value $Q_{\mathrm L} < 0.3808590568145606537807120$
+(Theorem~\ref{thm:lnzwz}, lnzwz $n = 512$) is certifiable after a documented
+minimal sub-ULP admissibility repair (Section~\ref{sec:lnzwz512}); we keep the
+admissible-outright $Q_{\mathrm H}$ as the headline.
 \item[(L)] The lower bound is Theorem~1 of White \cite{White22}, quoted
 unchanged; his proof is computer-assisted with explicitly verified dual
 feasible points. None of the computations reported in
@@ -642,9 +825,10 @@ not bear on Theorem~\ref{thm:main}.
 \end{conditional}
 
 \begin{remark}[what this note does not prove]\label{rem:notproved}
-The numerical bracket ``$\mu \in [0.380827,\, 0.380862]$'' suggested by the
+The numerical bracket ``$\mu \in [0.380827,\, 0.380859]$'' suggested by the
 $N$-progression of Section~\ref{sec:scaling} together with
-Theorem~\ref{thm:upper} is \emph{not established}, for three independent
+Theorems~\ref{thm:hyra}--\ref{thm:lnzwz} is \emph{not established}, for three
+independent
 reasons: (i) the solver values are floating-point and mildly infeasible
 (min.\ slack $-1.03\times10^{-7}$ at $N = 2\times10^5$), and the repaired,
 certificate-grade value currently sits at $0.37945$, not $0.38083$;
@@ -717,6 +901,30 @@ value $Q_{\mathrm{old}} < 0.3808669097979875909124431$, is retained for
 comparison.)
 \end{itemize}
 
+\paragraph{Frontier constructions (exact; certifies
+Theorems~\ref{thm:hyra} and \ref{thm:lnzwz}).}
+\begin{itemize}
+\item \texttt{scripts/certify\_leaders.py} --- recomputes, for each current best
+arena construction, the raw float board score (cross-check), the exact
+admissibility status, the minimal repair where needed, and the exact rational
+proven bound with its $25$-digit enclosure (recompute-not-echo). Run:
+\texttt{python3 scripts/certify\_leaders.py} (equivalently
+\texttt{make verify-leaders}). Inputs:
+\texttt{certs/hyra\_n1024.json} (Hyra solution \texttt{2406}; admissible via the
+board's exact rescale, zero box violations) and
+\texttt{certs/lnzwz\_n512\_repaired.json} (lnzwz solution \texttt{2407}; the raw
+board vector plus the exact repair delta).
+\item \texttt{scripts/repair\_admissibility.py} --- the minimal sub-ULP
+admissibility repair of Section~\ref{sec:lnzwz512} (stdlib only). It recomputes
+the exact deficit, redistributes it into headroom cells, verifies
+$\sum_i f_i = n/2$ exactly and $f \in [0,1]$, and demonstrates that the raw and
+repaired vectors receive a bit-identical float board score.
+\item \texttt{scripts/selftest.py} --- re-derives all certified bounds ($Q$,
+$Q_{\mathrm H}$, $Q_{\mathrm L}$) from the shipped vectors and asserts each
+equals its golden rational, including that the v1.1 theorem is intact
+(equivalently \texttt{make selftest}; exit $0$ iff all pass).
+\end{itemize}
+
 \paragraph{Lower-bound program (White's method).}
 \begin{itemize}
 \item \texttt{scripts/erdos\_white\_dual\_certificate.py} --- scaled solver
@@ -773,12 +981,14 @@ arXiv:1609.08000 [math.GM], 2016.
 \bibitem{Arena26}
 EinsteinArena (open leaderboard of pseudonymous AI search agents),
 \emph{Step-function constructions for the minimum overlap problem}, problem
-\texttt{erdos-min-overlap}: the current best admissible construction of the
-agent ``lnzwz'' (board score $0.38086279\ldots$), building on the earlier
-multiscale work of ``Hyra'' ($n = 2400$, board score $0.3808669097979876$)
-and other agents,
-\url{https://einsteinarena.com/problems/erdos-min-overlap},
-retrieved 2026-07-06.
+\texttt{erdos-min-overlap}. Certified in this note: the $n = 1024$ construction
+of ``Hyra'' (solution \texttt{2406}, board score $0.38085942\ldots$) and the
+$n = 512$ construction of ``lnzwz\_AI4M\_Agent'' (solution \texttt{2407}, board
+score $0.38085906\ldots$), both retrieved 2026-07-12; our own v1.1 $n = 512$
+construction refines an earlier ``lnzwz'' submission (board score
+$0.38086279\ldots$), building on the earlier multiscale work of ``Hyra''
+($n = 2400$, board score $0.3808669097979876$) and other agents,
+\url{https://einsteinarena.com/problems/erdos-min-overlap}.
 
 \bibitem{KimPilanci26}
 S.~Kim and M.~Pilanci,
