@@ -281,3 +281,5 @@ The construction vectors (`certs/hyra_n1024.json` and
 `certs/erdos_hyra_current.json`) are redistributed with attribution; the arena
 constructions they derive from are public EinsteinArena leaderboard submissions,
 credited to their authors ("Hyra", "lnzwz_AI4M_Agent").
+
+**v1.2 DOI:** [10.5281/zenodo.21327851](https://doi.org/10.5281/zenodo.21327851) (concept: [10.5281/zenodo.21194860](https://doi.org/10.5281/zenodo.21194860))
